@@ -1,39 +1,67 @@
--- // Anti-Lag Mobile Rayfield - Delta Executor
--- // Versão Raw - Otimizada para Mobile
+repeat task.wait() until game:IsLoaded()
 
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 
 local Window = Rayfield:CreateWindow({
-    Name = "Anti-Lag Δ Mobile",
-    LoadingTitle = "Anti-Lag Mobile",
-    LoadingSubtitle = "Carregando...",
-    ConfigurationSaving = {
-        Enabled = true,
-        FolderName = "AntiLagDelta",
-        FileName = "Config"
-    }
+   Name = "Anti-Lag Mobile Δ",
+   Icon = 0,
+   LoadingTitle = "Anti-Lag Interface",
+   LoadingSubtitle = "by Delta Mobile",
+   ShowText = "Anti-Lag",
+   Theme = "Default",
+
+   ToggleUIKeybind = "K",
+
+   DisableRayfieldPrompts = false,
+   DisableBuildWarnings = false,
+
+   ConfigurationSaving = {
+      Enabled = true,
+      FolderName = "AntiLagDelta",
+      FileName = "ConfigMobile"
+   },
+
+   Discord = {
+      Enabled = false,
+      Invite = "noinvitelink",
+      RememberJoins = true
+   },
+
+   KeySystem = false,
+   KeySettings = {
+      Title = "Anti-Lag",
+      Subtitle = "Key System",
+      Note = "Sem sistema de key ativado",
+      FileName = "Key",
+      SaveKey = true,
+      GrabKeyFromSite = false,
+      Key = {"antilag2025"}
+   }
 })
 
-local Tab = Window:CreateTab("Principal", 4483362458)
+-- ============ TABS ============ --
+local TabPrincipal = Window:CreateTab("🔥 Anti-Lag", 4483362458)
+local TabExtra = Window:CreateTab("⚙️ Extra", 4483362458)
 
--- Funções Anti-Lag
+-- ============ FUNÇÕES ============ --
 local function MaxAntiLag()
-    settings().Rendering.QualityLevel = Enum.QualityLevel.Level01
-    settings().Network.IncomingReplicationLag = 0
-    
+    pcall(function()
+        settings().Rendering.QualityLevel = Enum.QualityLevel.Level01
+    end)
+
     local Lighting = game:GetService("Lighting")
     Lighting.GlobalShadows = false
     Lighting.FogEnd = 999999
     Lighting.Brightness = 1
     Lighting.ClockTime = 12
     Lighting.Technology = Enum.Technology.Compatibility
-    
+
     for _, v in pairs(Lighting:GetChildren()) do
         if v:IsA("PostEffect") then
             v.Enabled = false
         end
     end
-    
+
     local Terrain = workspace:FindFirstChildOfClass("Terrain")
     if Terrain then
         Terrain.WaterWaveSize = 0
@@ -46,84 +74,168 @@ end
 local function PlasticMode(state)
     for _, v in pairs(workspace:GetDescendants()) do
         if v:IsA("BasePart") and not v:IsA("Terrain") then
-            if state then
-                v.Material = Enum.Material.Plastic
-                v.Color = Color3.fromRGB(140, 140, 140)
-                pcall(function() if v:FindFirstChild("Mesh") then v.Mesh:Destroy() end end)
-            end
+            pcall(function()
+                if state then
+                    v.Material = Enum.Material.Plastic
+                    v.Color = Color3.fromRGB(163, 162, 165)
+                end
+            end)
         end
     end
 end
 
 local function ClearVisuals()
     for _, v in pairs(workspace:GetDescendants()) do
-        if v:IsA("ParticleEmitter") or v:IsA("Trail") or v:IsA("Beam") or v:IsA("Smoke") or 
-           v:IsA("Fire") or v:IsA("Sparkles") or v:IsA("Decal") or v:IsA("Texture") then
-            v:Destroy()
+        pcall(function()
+            if v:IsA("ParticleEmitter") or
+               v:IsA("Trail") or
+               v:IsA("Beam") or
+               v:IsA("Smoke") or
+               v:IsA("Fire") or
+               v:IsA("Sparkles") or
+               v:IsA("Decal") or
+               v:IsA("Texture") then
+                v:Destroy()
+            end
+        end)
+    end
+end
+
+local function DesativarSombras(state)
+    game:GetService("Lighting").GlobalShadows = not state
+    for _, v in pairs(game:GetService("Lighting"):GetChildren()) do
+        if v:IsA("PostEffect") then
+            v.Enabled = not state
         end
     end
 end
 
--- Interface
-Tab:CreateButton({
+-- ============ TAB PRINCIPAL ============ --
+
+TabPrincipal:CreateSection("Otimização Geral")
+
+TabPrincipal:CreateButton({
     Name = "🔥 Aplicar Anti-Lag Máximo",
     Callback = function()
         MaxAntiLag()
         PlasticMode(true)
         ClearVisuals()
-        Rayfield:Notify("Anti-Lag Máximo Ativado", "Lag reduzido ao máximo possível no mobile", 4483362458)
+        Rayfield:Notify({
+            Title = "Anti-Lag Ativado!",
+            Content = "Lag reduzido ao máximo possível no mobile.",
+            Duration = 4,
+            Image = 4483362458,
+        })
     end
 })
 
-Tab:CreateToggle({
-    Name = "Modo Plástico (Muito Forte)",
-    CurrentValue = true,
+TabPrincipal:CreateSection("Toggles de FPS")
+
+TabPrincipal:CreateToggle({
+    Name = "Modo Plástico (FPS Boost Forte)",
+    CurrentValue = false,
+    Flag = "PlasticToggle",
     Callback = function(Value)
         PlasticMode(Value)
     end
 })
 
-Tab:CreateToggle({
-    Name = "Limpeza Automática",
-    CurrentValue = true,
+TabPrincipal:CreateToggle({
+    Name = "Desativar Sombras e Efeitos de Luz",
+    CurrentValue = false,
+    Flag = "SombrasToggle",
     Callback = function(Value)
-        getgenv().AutoClean = Value
-        while getgenv().AutoClean do
-            ClearVisuals()
-            task.wait(3.5)
+        DesativarSombras(Value)
+    end
+})
+
+TabPrincipal:CreateToggle({
+    Name = "Limpeza Automática (A cada 4s)",
+    CurrentValue = false,
+    Flag = "AutoCleanToggle",
+    Callback = function(Value)
+        getgenv().AutoCleanAtivo = Value
+        if Value then
+            task.spawn(function()
+                while getgenv().AutoCleanAtivo do
+                    ClearVisuals()
+                    task.wait(4)
+                end
+            end)
         end
     end
 })
 
-Tab:CreateToggle({
-    Name = "Desativar Sombras e Efeitos",
-    CurrentValue = true,
-    Callback = function(Value)
-        game:GetService("Lighting").GlobalShadows = not Value
-        for _, v in pairs(game:GetService("Lighting"):GetChildren()) do
-            if v:IsA("PostEffect") then
-                v.Enabled = not Value
-            end
-        end
-    end
-})
+TabPrincipal:CreateSection("Limpeza Manual")
 
-Tab:CreateButton({
-    Name = "Limpar Efeitos Agora",
+TabPrincipal:CreateButton({
+    Name = "🗑️ Limpar Partículas e Efeitos Agora",
     Callback = function()
         ClearVisuals()
-        Rayfield:Notify("Limpeza Concluída", "Todos efeitos visuais removidos", 4483362458)
+        Rayfield:Notify({
+            Title = "Limpeza Feita!",
+            Content = "Todas partículas e efeitos removidos.",
+            Duration = 3,
+            Image = 4483362458,
+        })
     end
 })
 
-Tab:CreateSlider({
-    Name = "Distância de Render (Fog)",
-    Range = {50, 400},
+-- ============ TAB EXTRA ============ --
+
+TabExtra:CreateSection("Configurações Avançadas")
+
+TabExtra:CreateSlider({
+    Name = "Distância de Renderização (FogEnd)",
+    Range = {50, 500},
     Increment = 25,
-    CurrentValue = 150,
+    Suffix = "u",
+    CurrentValue = 200,
+    Flag = "FogSlider",
     Callback = function(Value)
         game:GetService("Lighting").FogEnd = Value
     end
 })
 
-Rayfield:Notify("Script Carregado com Sucesso", "Clique em 'Anti-Lag Máximo' para melhor desempenho", 4483362458)
+TabExtra:CreateToggle({
+    Name = "Desativar Animações de Água (Terrain)",
+    CurrentValue = false,
+    Flag = "WaterToggle",
+    Callback = function(Value)
+        local Terrain = workspace:FindFirstChildOfClass("Terrain")
+        if Terrain then
+            Terrain.WaterWaveSize = Value and 0 or 1
+            Terrain.WaterWaveSpeed = Value and 0 or 1
+            Terrain.WaterReflectance = Value and 0 or 0.5
+            Terrain.WaterTransparency = Value and 1 or 0
+        end
+    end
+})
+
+TabExtra:CreateToggle({
+    Name = "Baixar Qualidade Gráfica ao Mínimo",
+    CurrentValue = false,
+    Flag = "QualityToggle",
+    Callback = function(Value)
+        pcall(function()
+            if Value then
+                settings().Rendering.QualityLevel = Enum.QualityLevel.Level01
+            else
+                settings().Rendering.QualityLevel = Enum.QualityLevel.Automatic
+            end
+        end)
+    end
+})
+
+TabExtra:CreateSection("Info")
+
+TabExtra:CreateLabel("Script by Anti-Lag Delta Mobile")
+TabExtra:CreateLabel("Use o botão Anti-Lag Máximo primeiro!")
+
+-- ============ NOTIFY INICIAL ============ --
+Rayfield:Notify({
+    Title = "Script Carregado!",
+    Content = "Clique em 'Anti-Lag Máximo' para melhor resultado.",
+    Duration = 5,
+    Image = 4483362458,
+})
